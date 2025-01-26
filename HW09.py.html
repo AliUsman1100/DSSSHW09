@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>HW09.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+HW09.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">asyncio</span>
+<span class="s0">from </span><span class="s1">telegram </span><span class="s0">import </span><span class="s1">Update</span>
+<span class="s0">from </span><span class="s1">telegram.ext </span><span class="s0">import </span><span class="s1">Application</span><span class="s0">, </span><span class="s1">CommandHandler</span><span class="s0">, </span><span class="s1">MessageHandler</span><span class="s0">, </span><span class="s1">filters</span><span class="s0">, </span><span class="s1">CallbackContext</span>
+<span class="s0">from </span><span class="s1">transformers </span><span class="s0">import </span><span class="s1">AutoModelForCausalLM</span><span class="s0">, </span><span class="s1">AutoTokenizer</span>
+<span class="s0">import </span><span class="s1">torch</span>
+
+<span class="s2"># Telegram Bot API Token from BotFather</span>
+<span class="s1">TELEGRAM_BOT_TOKEN = </span><span class="s3">&quot;7138974188:AAF0kdo7UT7Iw3PCoYsOGVvA5M8ciASIZR0&quot;</span>
+
+<span class="s2"># Load the TinyLlama model and tokenizer</span>
+<span class="s1">model_name = </span><span class="s3">&quot;TinyLlama/TinyLlama-1.1B-Chat-v1.0&quot;</span>
+<span class="s1">tokenizer = AutoTokenizer.from_pretrained(model_name)</span>
+<span class="s1">model = AutoModelForCausalLM.from_pretrained(model_name)</span>
+
+
+<span class="s2"># Command to start the bot</span>
+<span class="s0">async def </span><span class="s1">start(update: Update</span><span class="s0">, </span><span class="s1">context: CallbackContext):</span>
+    <span class="s0">await </span><span class="s1">update.message.reply_text(</span><span class="s3">&quot;Hello! I am your AI Assistant. Ask me anything!&quot;</span><span class="s1">)</span>
+
+
+<span class="s2"># Function to handle user messages</span>
+<span class="s0">async def </span><span class="s1">handle_message(update: Update</span><span class="s0">, </span><span class="s1">context: CallbackContext):</span>
+    <span class="s1">user_message = update.message.text</span>
+    <span class="s0">await </span><span class="s1">update.message.reply_text(</span><span class="s3">&quot;Thinking...&quot;</span><span class="s1">)</span>
+
+    <span class="s2"># Generate AI response</span>
+    <span class="s1">input_ids = tokenizer.encode(user_message</span><span class="s0">, </span><span class="s1">return_tensors=</span><span class="s3">&quot;pt&quot;</span><span class="s1">)</span>
+    <span class="s0">with </span><span class="s1">torch.no_grad():</span>
+        <span class="s1">output = model.generate(input_ids</span><span class="s0">, </span><span class="s1">max_length=</span><span class="s4">100</span><span class="s1">)</span>
+
+    <span class="s1">response = tokenizer.decode(output[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">, </span><span class="s1">skip_special_tokens=</span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s0">await </span><span class="s1">update.message.reply_text(response)</span>
+
+
+<span class="s2"># Main function to start the bot</span>
+<span class="s0">async def </span><span class="s1">main():</span>
+    <span class="s1">app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()</span>
+    <span class="s1">app.add_handler(CommandHandler(</span><span class="s3">&quot;start&quot;</span><span class="s0">, </span><span class="s1">start))</span>
+    <span class="s1">app.add_handler(MessageHandler(filters.TEXT &amp; ~filters.COMMAND</span><span class="s0">, </span><span class="s1">handle_message))</span>
+
+    <span class="s1">print(</span><span class="s3">&quot;Bot is running...&quot;</span><span class="s1">)</span>
+    <span class="s0">await </span><span class="s1">app.run_polling()</span>
+
+
+<span class="s2"># Use this method to start the bot without creating a new event loop</span>
+<span class="s0">if </span><span class="s1">__name__ == </span><span class="s3">&quot;__main__&quot;</span><span class="s1">:</span>
+    <span class="s2"># Directly run the polling loop (don't use asyncio.run)</span>
+    <span class="s1">application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()</span>
+    <span class="s1">application.add_handler(CommandHandler(</span><span class="s3">&quot;start&quot;</span><span class="s0">, </span><span class="s1">start))</span>
+    <span class="s1">application.add_handler(MessageHandler(filters.TEXT &amp; ~filters.COMMAND</span><span class="s0">, </span><span class="s1">handle_message))</span>
+
+    <span class="s1">print(</span><span class="s3">&quot;Bot is running...&quot;</span><span class="s1">)</span>
+    <span class="s1">application.run_polling()  </span><span class="s2"># This is enough to start the bot without creating a new event loop</span>
+</pre>
+</body>
+</html>
